@@ -25,9 +25,9 @@
   const io = new SocketIOServer(server, {
     cors: ({
       origin: [
+        process.env.PRODUCTION_URL,
         "http://127.0.0.1:3000",
         "http://192.168.1.2:3000",
-        process.env.PRODUCTION_URL,
 
       ], // or your frontend URL
       credentials: true,
@@ -78,9 +78,9 @@
   app.use(
     cors({
       origin: [
+        process.env.PRODUCTION_URL,
         "http://127.0.0.1:3000",
         "http://192.168.1.2:3000",
-        process.env.PRODUCTION_URL,
       ],
       credentials: true,
     })
