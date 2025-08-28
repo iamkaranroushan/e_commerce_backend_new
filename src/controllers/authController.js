@@ -119,10 +119,10 @@ const verifyOtp = async (req, res) => {
     // console.log("islocal:", isLocal);
     res.cookie("jwtToken", jwtToken, {
       httpOnly: true,
-      sameSite: "none",
       secure: true,
+      sameSite: "none",
       maxAge: oneDayInMillis,
-      // domain: ".deepakmart.com"
+      domain:".instamart.shop"
       // domain: "e-commerce-backend-new-g1s9.onrender.com"
     });
     res.json({
@@ -140,9 +140,9 @@ const logoutUser = async (req, res) => {
   try {
     res.clearCookie("jwtToken", {
       httpOnly: true,
-      sameSite: "none", // adjust if you're using secure cookies
       secure: true, // true in prod
-      // domain:".deepakmart.com"
+      sameSite: "none", // adjust if you're using secure cookies
+      domain:".instamart.shop"
       // domain:"e-commerce-backend-new-g1s9.onrender.com"
     });
     res.status(200).json({ message: "Logged out successfully." });
