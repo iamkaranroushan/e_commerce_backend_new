@@ -115,15 +115,20 @@ const verifyOtp = async (req, res) => {
     const jwtToken = generateToken(tokenData);
 
     const oneDayInMillis = 24 * 60 * 60 * 1000;
-    // const isLocal = req.hostname === 'localhost' || req.hostname.startsWith('192.');
-    // console.log("islocal:", isLocal);
+    
+    // Detect environment
+    const isProduction = process.env.NODE_ENV === "production";
+    
+    // Determine domain dynamically
+    const cookieDomain = isProduction ? ".instamart.shop" : "127.0.0.1";
+    
     res.cookie("jwtToken", jwtToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: isProduction, // only HTTPS in production
+      sameSite: isProduction ? "none" : "lax", // prevent CORS issues in dev
       maxAge: oneDayInMillis,
-      domain:".instamart.shop"
-      // domain: "e-commerce-backend-new-g1s9.onrender.com"
+      domain: cookieDomain,
+      path:"/"
     });
     res.json({
       token: jwtToken,
@@ -137,11 +142,15 @@ const verifyOtp = async (req, res) => {
 
 const logoutUser = async (req, res) => {
   // const isLocal = req.hostname === 'localhost' || req.hostname.startsWith('192.');
+  const isProduction = process.env.NODE_ENV === "production";
+    
+    // Determine domain dynamically
+  const cookieDomain = isProduction ? ".instamart.shop" : "127.0.0.1";
   try {
     res.clearCookie("jwtToken", {
       httpOnly: true,
-      secure: true, // true in prod
-      sameSite: "none", // adjust if you're using secure cookies
+      secure: isProduction, // only HTTPS in production
+      sameSite: isProduction ? "none" : "lax",  // adjust if you're using secure cookies
       domain:".instamart.shop"
       // domain:"e-commerce-backend-new-g1s9.onrender.com"
     });
