@@ -71,9 +71,6 @@ model Category {
   name             String
   description      String?
   imageUrl         String?
-  parentCategoryId Int?
-  parentCategory   Category?  @relation("CategoryParent", fields: [parentCategoryId], references: [id], onDelete: Cascade)
-  subCategories    Category[] @relation("CategoryParent")
   products         Product[]
   createdAt        DateTime   @default(now())
   updatedAt        DateTime?  @updatedAt

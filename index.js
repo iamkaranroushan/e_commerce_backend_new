@@ -27,7 +27,7 @@
       origin: [
         process.env.PRODUCTION_URL,
         "http://127.0.0.1:3000",
-        "http://192.168.1.2:3000",
+        "http://192.168.1.4:3000",
 
       ], // or your frontend URL
       credentials: true,
@@ -80,7 +80,7 @@
       origin: [
         process.env.PRODUCTION_URL,
         "http://127.0.0.1:3000",
-        "http://192.168.1.2:3000",
+        "http://192.168.1.4:3000",
       ],
       credentials: true,
     })

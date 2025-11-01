@@ -22,8 +22,6 @@ export const schema = buildSchema(`
     name: String!
     description: String
     imageUrl: String
-    parentCategoryId: Int
-    subCategories: [Category!]
     products: [Product!]
   }
 

@@ -8,7 +8,6 @@ export const resolvers = {
     return "Hello, GraphQL!";
   },
 
-
   //get list of users
   users: async ({ username }) => {
     if (username) {
@@ -81,14 +80,10 @@ export const resolvers = {
       );
 
       // 6. Set cookie
-      res.cookie(
-        "jwt", token,
-        {
-          maxAge: 24 * 60 * 60,// 1 day in seconds,
-          httpOnly: true,
-        }
-      )
-
+      res.cookie("jwt", token, {
+        maxAge: 24 * 60 * 60, // 1 day in seconds,
+        httpOnly: true,
+      });
 
       // 7. Return token and full user
       return {
@@ -191,7 +186,6 @@ export const resolvers = {
     }
   },
 
-
   //user login
   userLogin: async ({ email, password }, { res }) => {
     const existing_user = await prisma.user.findUnique({
@@ -205,11 +199,11 @@ export const resolvers = {
                 productVariant: {
                   include: {
                     product: true, // Fetch related product from the productVariant
-                  }
-                }
-              }
-            }
-          }
+                  },
+                },
+              },
+            },
+          },
         },
         orders: true,
         payments: true,
@@ -234,13 +228,10 @@ export const resolvers = {
             { expiresIn: "24h" }
           );
 
-          res.cookie(
-            "jwt", token,
-            {
-              maxAge: 24 * 60 * 60,// 1 day in seconds,
-              httpOnly: true,
-            })
-
+          res.cookie("jwt", token, {
+            maxAge: 24 * 60 * 60, // 1 day in seconds,
+            httpOnly: true,
+          });
 
           return {
             token,
@@ -252,7 +243,7 @@ export const resolvers = {
               addresses: existing_user.addresses,
               cart: existing_user.cart,
               orders: existing_user.orders,
-              payments: existing_user.payments
+              payments: existing_user.payments,
             },
           };
         } else {
@@ -266,125 +257,19 @@ export const resolvers = {
     }
   },
 
-  //subcategory management
-  createSubCategory: async ({
-    name,
-    imageUrl,
-    parentCategoryId,
-  }) => {
-    const existingSubCategory = await prisma.category.findFirst({
-      where: {
-        name,
-        parentCategoryId,
-      },
-    });
 
-    if (existingSubCategory) {
-      throw new Error(
-        "Subcategory with this name already exists under this parent category. Please provide another name."
-      );
-    }
-
-    const newSubCategory = await prisma.category.create({
-      data: {
-        name,
-        imageUrl,
-        parentCategoryId,
-      },
-    });
-    return newSubCategory;
-  },
-
-  deleteSubCategory: async ({ id }) => {
-    try {
-      const subCategory = await prisma.category.findUnique({
-        where: { id },
-        include: { products: true }
-      });
-
-      if (!subCategory) {
-        return {
-          success: false,
-          error: 'Subcategory not found.'
-        };
-      }
-
-      if (subCategory.parentCategoryId === null) {
-        return {
-          success: false,
-          error: 'Cannot delete a top-level category using this mutation.'
-        };
-      }
-
-      // Step 1: Delete all products under this subcategory
-      await prisma.product.deleteMany({
-        where: { categoryId: id }
-      });
-
-      // Step 2: Delete the subcategory itself
-      await prisma.category.delete({
-        where: { id }
-      });
-
-      return {
-        success: true,
-        error: null
-      };
-    } catch (error) {
-      console.error('Delete subcategory error:', error);
-      return {
-        success: false,
-        error: 'Failed to delete subcategory and its products.'
-      };
-    }
-  },
-
-
-  updateSubCategory: async ({ id, input }) => {
-
-    try {
-      const existing = await prisma.category.findUnique({ where: { id } });
-
-      if (!existing || !existing.parentCategoryId) {
-        return {
-          subCategory: null,
-          error: 'Subcategory not found or is not a subcategory.'
-        };
-      }
-
-      const updated = await prisma.category.update({
-        where: { id },
-        data: {
-          name: input.name ?? existing.name,
-          imageUrl: input.imageUrl ?? existing.imageUrl
-        }
-      });
-
-      return {
-        subCategory: updated,
-        error: null
-      };
-    } catch (error) {
-      console.error('❌ Error updating subcategory:', error);
-      return {
-        subCategory: null,
-        error: 'Failed to update subcategory.'
-      };
-    }
-  },
   //category management
   categories: async () => {
     return await prisma.category.findMany({
-      where: {
-        parentCategoryId: null,
-      },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
       include: {
-        subCategories: true,
-      },
-
+            products:{
+              include:{
+                variants:true
+            }},
+      }, 
     });
   },
 
@@ -396,11 +281,13 @@ export const resolvers = {
     });
 
     if (existingCategory) {
-      throw new Error("Category with this name already exists. Please choose another name.");
+      throw new Error(
+        "Category with this name already exists. Please choose another name."
+      );
     }
     const newCategory = await prisma.category.create({
       data: {
-        name
+        name,
       },
     });
     return newCategory;
@@ -415,7 +302,7 @@ export const resolvers = {
 
       if (!existingCategory) {
         return {
-          message: 'Category not found',
+          message: "Category not found",
           success: false,
         };
       }
@@ -426,13 +313,13 @@ export const resolvers = {
       });
 
       return {
-        message: 'Category deleted successfully',
+        message: "Category deleted successfully",
         success: true,
       };
     } catch (error) {
-      console.error('Error deleting category:', error);
+      console.error("Error deleting category:", error);
       return {
-        message: 'Failed to delete category',
+        message: "Failed to delete category",
         success: false,
       };
     }
@@ -440,7 +327,6 @@ export const resolvers = {
 
   updateCategory: async ({ categoryId, newName }) => {
     try {
-
       // Update the category using Prisma
       const updatedCategory = await prisma.category.update({
         where: { id: categoryId },
@@ -449,14 +335,14 @@ export const resolvers = {
 
       return {
         success: true,
-        message: 'Category updated successfully.',
+        message: "Category updated successfully.",
         category: updatedCategory,
       };
     } catch (error) {
       console.error("Update Category Error:", error);
       return {
         success: false,
-        message: error.message || 'Failed to update category.',
+        message: error.message || "Failed to update category.",
         category: null,
       };
     }
@@ -470,17 +356,24 @@ export const resolvers = {
       include: {
         variants: {
           include: {
-            product: true
-          }
-        }
+            product: true,
+          },
+        },
       }, // Include product variants
       orderBy: {
-        createdAt: 'asc',
+        createdAt: "asc",
       },
     });
   },
 
-  createProduct: async ({ name, description, categoryId, imageUrl, isActive, variants }) => {
+  createProduct: async ({
+    name,
+    description,
+    categoryId,
+    imageUrl,
+    isActive,
+    variants,
+  }) => {
     return await prisma.product.create({
       data: {
         name,
@@ -489,15 +382,15 @@ export const resolvers = {
         imageUrl,
         isActive,
         variants: {
-          create: variants.map(variant => ({
-            weight: variant.weight,  // Now a string ("100g", "500g", etc.)
+          create: variants.map((variant) => ({
+            weight: variant.weight, // Now a string ("100g", "500g", etc.)
             price: variant.price,
             mrp: variant.mrp,
-            inStock: variant.inStock,    // Include stock quantity
+            inStock: variant.inStock, // Include stock quantity
           })),
         },
       },
-      include: { variants: true },
+      include: { variants: true,  category:true},
     });
   },
 
@@ -519,13 +412,14 @@ export const resolvers = {
           name: input.name || undefined,
           description: input.description || undefined,
           imageUrl: input.imageUrl || undefined,
-          isActive: typeof input.isActive !== 'undefined' ? input.isActive : undefined,
+          isActive:
+            typeof input.isActive !== "undefined" ? input.isActive : undefined,
         },
       });
 
       // 3. Update or create product variants
       if (input.variants && input.variants.length > 0) {
-        const variantPromises = input.variants.map(variant => {
+        const variantPromises = input.variants.map((variant) => {
           if (variant.id) {
             // Update existing variant
             return prisma.productVariant.update({
@@ -534,7 +428,10 @@ export const resolvers = {
                 weight: variant.weight || undefined,
                 price: variant.price || undefined,
                 mrp: variant.mrp || undefined,
-                inStock: typeof variant.inStock !== 'undefined' ? variant.inStock : undefined,
+                inStock:
+                  typeof variant.inStock !== "undefined"
+                    ? variant.inStock
+                    : undefined,
               },
             });
           } else {
@@ -545,7 +442,7 @@ export const resolvers = {
                 weight: variant.weight,
                 price: variant.price,
                 mrp: variant.mrp,
-                inStock: variant.inStock
+                inStock: variant.inStock,
               },
             });
           }
@@ -594,7 +491,6 @@ export const resolvers = {
       });
 
       return { success: true, error: null };
-
     } catch (error) {
       console.error("❌ Failed to delete product:", error);
       return { success: false, error: "Failed to delete product." };
@@ -661,7 +557,6 @@ export const resolvers = {
         error: null,
         cartItem: existingCartItem,
       };
-
     } catch (error) {
       console.error(error);
       return {
@@ -729,14 +624,14 @@ export const resolvers = {
       });
 
       if (!cartItem) {
-        console.log("cartItem not found.")
+        console.log("cartItem not found.");
       }
-      if ((cartItem.quantity + quantity) === 0) {
+      if (cartItem.quantity + quantity === 0) {
         // If quantity is 0, delete the cart item
         await prisma.cartItem.delete({
           where: { id: cartItemId },
         });
-        console.log("done")
+        console.log("done");
         return {
           message: "Cart item removed successfully",
           updatedQuantity: 0,
@@ -747,7 +642,7 @@ export const resolvers = {
           where: { id: cartItemId },
           data: { quantity: cartItem.quantity + quantity },
         });
-        console.log("done")
+        console.log("done");
         return {
           message: "Cart quantity updated successfully",
           updatedQuantity: updatedCartItem.quantity,
@@ -758,9 +653,8 @@ export const resolvers = {
       return {
         message: `Error updating cart quantity:  ${error.message}`,
         updatedQuantity: 0,
-      }
+      };
     }
-
   },
 
   cart: async ({ cartId }) => {
@@ -773,11 +667,11 @@ export const resolvers = {
               productVariant: {
                 include: {
                   product: true, // Fetch related product from the productVariant
-                }
-              }
-            }
-          }
-        }
+                },
+              },
+            },
+          },
+        },
       });
 
       if (!cart) {
@@ -786,17 +680,17 @@ export const resolvers = {
           error: "Cart not exist",
         };
       } else {
-        console.log("cart Items found.")
+        console.log("cart Items found.");
         return {
           cart,
-          error: null
-        }
+          error: null,
+        };
       }
     } catch (error) {
       return {
         cart: null,
-        error: error
-      }
+        error: error,
+      };
     }
   },
 
@@ -817,16 +711,18 @@ export const resolvers = {
             },
           },
         },
-        orderBy: { orderDate: 'desc' },
+        orderBy: { orderDate: "desc" },
       });
       return orders.map((order) => ({
         ...order,
         orderDate: new Date(Number(order.orderDate)).toISOString(),
-        deliveryDate: order.deliveryDate ? new Date(Number(order.deliveryDate)).toISOString() : null,
+        deliveryDate: order.deliveryDate
+          ? new Date(Number(order.deliveryDate)).toISOString()
+          : null,
       }));
     } catch (error) {
-      console.error('Error fetching user orders:', error);
-      throw new Error('Failed to fetch user orders');
+      console.error("Error fetching user orders:", error);
+      throw new Error("Failed to fetch user orders");
     }
   },
 
@@ -846,16 +742,18 @@ export const resolvers = {
             },
           },
         },
-        orderBy: { orderDate: 'desc' },
+        orderBy: { orderDate: "desc" },
       });
       return orders.map((order) => ({
         ...order,
         orderDate: new Date(Number(order.orderDate)).toISOString(),
-        deliveryDate: order.deliveryDate ? new Date(Number(order.deliveryDate)).toISOString() : null,
+        deliveryDate: order.deliveryDate
+          ? new Date(Number(order.deliveryDate)).toISOString()
+          : null,
       }));
     } catch (error) {
-      console.error('Error fetching all orders:', error);
-      throw new Error('Failed to fetch all orders');
+      console.error("Error fetching all orders:", error);
+      throw new Error("Failed to fetch all orders");
     }
   },
 
@@ -914,7 +812,9 @@ export const resolvers = {
               recipientId: admin.id,
               title: "new order placed",
               type: "ORDER_CREATED",
-              message: `New order placed by ${order.user.username || "Unknown User"}`,
+              message: `New order placed by ${
+                order.user.username || "Unknown User"
+              }`,
               isRead: false,
               orderId: order.id,
             },
@@ -949,14 +849,14 @@ export const resolvers = {
           user: true,
         },
         orderBy: {
-          createdAt: 'desc', // Optional: sort by latest
+          createdAt: "desc", // Optional: sort by latest
         },
       });
 
       return notifications;
     } catch (error) {
-      console.error('Error fetching notifications:', error);
-      throw new Error('Failed to fetch notifications');
+      console.error("Error fetching notifications:", error);
+      throw new Error("Failed to fetch notifications");
     }
   },
 
@@ -1002,10 +902,14 @@ export const resolvers = {
 
       return {
         ...order,
-        orderDate: order.orderDate instanceof Date ? order.orderDate.toISOString() : order.orderDate,
-        deliveryDate: order.deliveryDate instanceof Date && order.deliveryDate !== null
-          ? order.deliveryDate.toISOString()
-          : null,
+        orderDate:
+          order.orderDate instanceof Date
+            ? order.orderDate.toISOString()
+            : order.orderDate,
+        deliveryDate:
+          order.deliveryDate instanceof Date && order.deliveryDate !== null
+            ? order.deliveryDate.toISOString()
+            : null,
       };
     } catch (error) {
       console.error("Error fetching order by ID:", error);
@@ -1041,7 +945,9 @@ export const resolvers = {
           recipientId: updatedOrder.userId,
           title: "Order status updated",
           type: "ORDER_UPDATED", // Keep enum/type consistent
-          message: `Your order #${updatedOrder.id} has been ${status.toLowerCase()}`,
+          message: `Your order #${
+            updatedOrder.id
+          } has been ${status.toLowerCase()}`,
           isRead: false,
           orderId: updatedOrder.id,
         },
@@ -1060,7 +966,5 @@ export const resolvers = {
     }
   },
 
-  updateNotificationStatus: async () => { },
-
-
+  updateNotificationStatus: async () => {},
 };
